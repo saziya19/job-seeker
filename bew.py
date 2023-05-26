@@ -14,18 +14,18 @@ import gradio as gr
 import re
 import json
 st.set_page_config(page_title="Job Finder",page_icon=":tada:",layout="wide")
-# st.markdown("""
-# <style>
-# .css-nqowgj.edgvbvh3
-# {
-#     visibility:hidden;
-# }
-# .css-164nlkn.egzxvld1
-# {
-#     visibility:hidden;
-# }
-# </style>
-# """,unsafe_allow_html=True)
+st.markdown("""
+<style>
+.css-nqowgj.edgvbvh3
+{
+    visibility:hidden;
+}
+.css-164nlkn.egzxvld1
+{
+    visibility:hidden;
+}
+</style>
+""",unsafe_allow_html=True)
 def load_lottieurl(url):
     r=requests.get(url)
     if r.status_code!=200:
