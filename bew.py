@@ -1,7 +1,6 @@
-
 import streamlit as st
 import requests
-#from streamlit_lottie import st_lottie
+from streamlit_lottie import st_lottie
 # import time
 from bs4 import BeautifulSoup
 
@@ -26,13 +25,13 @@ st.markdown("""
 }
 </style>
 """,unsafe_allow_html=True)
-# def load_lottieurl(url):
-#     r=requests.get(url)
-#     if r.status_code!=200:
-#         return None
-#     return r.json()
+def load_lottieurl(url):
+    r=requests.get(url)
+    if r.status_code!=200:
+        return None
+    return r.json()
 
-# lottie_coding = load_lottieurl("https://assets4.lottiefiles.com/packages/lf20_xbf1be8x.json")
+lottie_coding = load_lottieurl("https://assets4.lottiefiles.com/packages/lf20_xbf1be8x.json")
 
 
 with st.container():
@@ -47,20 +46,6 @@ with st.container():
     with left_column:
         st.header("What I do")
         st.write("##")
-        # st.snow()
-        # picture = st.camera_input("take a picture")
-        # if picture:
-        #     st.image(picture)
-        # st.balloons()
-        # st.select_slider(
-        #     'Select a color of the rainbow',
-        #     options=['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'])
-        # st.snow()
-        # with st.spinner('Wait for it...'):
-        #      time.sleep(5)
-        #      st.success('Done!')
-        # st.text_input('Movie title', 'Life of Brian')
-        # st.camera_input("take a picture")
         st.text(
             """
             On this Job Finder:\n
@@ -70,8 +55,8 @@ with st.container():
             """
         )
 
-#     with right_column:
-#         st_lottie(lottie_coding,height=300,key="coding")
+    with right_column:
+        st_lottie(lottie_coding,height=300,key="coding")
 
 
 with st.container():
@@ -83,14 +68,14 @@ with st.container():
     if st.button("Search"):
         # st.write("congratulations"+description)
 
-        openai.api_key = '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'
+        openai.api_key = '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'
 
             
         response = openai.Completion.create(
         engine="text-davinci-003",
         prompt=f"Get the job role, education , place , technologies , number of years of experience , job type from Description:\n{description}\n",
         
-        temperature=0.5,
+        temperature=0,
         max_tokens=100,
         n=1,
         stop=None,
@@ -129,132 +114,154 @@ with st.container():
             formatted_job_title = value1.replace(" ", "-")
             print(formatted_job_title)
             
-            # print(value1)
-            # b=value1.split()
-            # print(b)
-            # stop_words =stopwords.words("english")
-            # stop_words.extend(["in"])
+           
             value2 = summary_dict.get("Education")
             value3 = summary_dict.get("Place")
             value4 = summary_dict.get("Technologies")
             value5_str = summary_dict.get("Experience")
-            lowercase_value5_str = value5_str.lower()
-            years_index = value5_str.find("Years")
+            value6_str = summary_dict.get("Job_Type")
 
-            print(value1)
-            print(value4)
-            print(value5_str)
-            if years_index != -1:
-                experience_num_str = value5_str[:years_index].strip()
-                try:
-                    value5 = int(experience_num_str)
-                except ValueError:
-                    value5 = 0
-            else:
-                if value5_str.lower() in ["n/a", "not specified", "none", " "]:
-                    value5 = 0
+            url_parts = []
+            url_parts2=[]
+            url_parts3=[]
+            url_parts4=[]
+            url_parts5=[]
+            
+            
+
+            if value1.lower() and value1.lower() not in ["n/a", "not specified", "none"]:
+                stop_words = stopwords.words('english')
+                stop_words.extend([","])
+                tech_tokens = word_tokenize(value2)
+                filtered_tech = [word for word in tech_tokens if word.lower() not in stop_words]
+                filtered_tech_string = "-".join(filtered_tech).replace(" ","-").replace("/","-")
+                
+                url_parts.append(filtered_tech_string)
+
+            if value2 and value2.lower() not in ["n/a", "not specified", "none"]:
+                stop_words = stopwords.words('english')
+                stop_words.extend([","])
+                education_tokens = word_tokenize(value2)
+                filtered_education = [word for word in education_tokens if word.lower() not in stop_words]
+                filtered_education_string = "-".join(filtered_education).replace(" ","-").replace("/","-")
+                url_parts5.append(filtered_education_string)
+
+            if value3 and value3.lower() not in ["n/a", "not specified", "none"]:
+                stop_words=stopwords.words('english')
+                location=word_tokenize(value3)
+                filtered_location=[word for word in location if word.lower() not in stop_words]
+                filtered_location1='-'.join(filtered_location).replace(' ','-')
+                url_parts4.append(filtered_location1)
+
+            if value4 and value4.lower() not in ["n/a", "not specified", "none"]:
+                stop_words = stopwords.words('english')
+                stop_words.extend([","])
+                technologies_tokens = word_tokenize(value4)
+                filtered_technologies = [word for word in technologies_tokens if word.lower() not in stop_words]
+                filtered_technologies_string = "-".join(filtered_technologies).replace(" ","-").replace("/","-")
+                #formatted_job_title1=value4.replace(" ","-").replace("/","-")
+                url_parts.append(filtered_technologies_string)
+                
+            if value5_str and value5_str.lower() not in ["n/a", "not specified", "none"]:
+                years_match = re.search(r"\d+(\.\d+)?", value5_str)
+                if years_match:
+                    experience_num_str = years_match.group()
+                    value5 = float(experience_num_str)
+                    if value5 != 0:
+                        if value5 < 5:
+                            x = value5 * 12
+                            url_parts2.append(str(int(x)))
+                        else:
+                            url_parts2.append("500")
+                
+
+            if value6_str and value6_str.lower() not in ["n/a", "not specified", "none"]:
+                if value6_str.lower() == "full time":
+                    url_parts3.append("1")
+                elif value6_str.lower() == "part time":
+                    url_parts3.append("2")
+                elif value6_str.lower() == "internship":
+                    url_parts3.append("3")
+                elif value6_str.lower() == "apprenticeship":
+                    url_parts3.append("6")
                 else:
-                    value5 = 0  # Assign a default value when experience is text or empty
+                    print("Your job type is not in the list.")
+                #url_parts3.append(value6_str)
+            if url_parts and url_parts2 and url_parts3 and url_parts4 and url_parts5:
+                joined_string2 = "-".join(url_parts3)
+                joined_string = "-".join(url_parts)
+                joined_string1 = "-".join(url_parts2)
+                joined_string3 = "-".join(url_parts4)
+                joined_string4 = "-".join(url_parts5)
+                
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}-jobs-for-{joined_string4}-in-{joined_string3}?course=16&experience={joined_string1}&job_type={joined_string2}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
+                
+            elif url_parts and url_parts2 and url_parts3 and url_parts4:
+                joined_string2 = "-".join(url_parts3)
+                joined_string = "-".join(url_parts)
+                joined_string1 = "-".join(url_parts2)
+                joined_string3 = "-".join(url_parts4)
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}-in-{joined_string3}?course=16&experience={joined_string1}&job_type={joined_string2}"
+                lowercase_url = URL.lower()
+                lowercase_url.replace('/','-')
+                print(lowercase_url)
+            elif url_parts and url_parts4 and url_parts2:
+                joined_string = "-".join(url_parts)
+                joined_string1 = "-".join(url_parts2)
+                joined_string3 = "-".join(url_parts4)
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}-in-{joined_string3}?course=16&experience={joined_string1}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
+            elif url_parts and url_parts2 and url_parts3:
+                joined_string2 = "-".join(url_parts3)
+                joined_string = "-".join(url_parts)
+                joined_string1 = "-".join(url_parts2)
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}?course=16&experience={joined_string1}&job_type={joined_string2}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
+                
+            elif url_parts and url_parts4 :
+                joined_string = "-".join(url_parts)
+                joined_string3 = "-".join(url_parts4)
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}-in-{joined_string3}?course=16"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
+                
 
-            if value5 != 0:
-                if value5 < 4:
-                    x = value5 * 12
-                    print(x)
-                else:
-                    y = 500
-                    print(y)
-            else:
-                print("Experience should not be zero")
-
-            # value5_str = summary_dict.get("Experience")
-            # lowercase_value5_str = value5_str.lower()
-            # years_index = value5_str.find("Years")
-
-            # print(value1)
-            # print(value4)
-            # print(value5_str)
-            # if years_index != -1:
-            #     experience_num_str = value5_str[:years_index].strip()
-            #     value5 = float(experience_num_str)
-            # else:
-            #     value5 = int(value5_str)
-            #     Z = int(value5)
-            #     print(Z)
-
-            # if Z != 0:
-            #         if Z < 4:
-            #             x = Z * 12
-            #             print(x)
-                        
-            #         else:
-            #             y = 500
-            #             print(y)
-                        
-            # else:
-            #         print("experience should not be zero")
-
-            print("LALITHA")
-
-            value6 = summary_dict.get("Job_Type")
-            if value6.lower() == "full time":
-                print("1")
-            elif value6.lower() == "part time":
-                print("2")
-            elif value6.lower() == "internship":
-                print("3")
-            elif value6.lower() == "apprenticeship":
-                print("6")
-            else:
-                print("Your job type is not in the list.")
-            #jjob=[]
-            if formatted_job_title.lower() != "N/A" and formatted_job_title.lower()!= "Not Specified" and formatted_job_title.lower() != "None" and formatted_job_title.lower() != " ":
-                job.append(formatted_job_title.lower())
-            else:
-                pass
-
-            if value2 != "N/A" and value2 != "Not Specified" and value2 != "None" and value2 != " ":
-                job.append(value2)
-                print(job)
-            else:
-                pass
-            if value3 != "N/A" and value3 != "Not Specified" and value3 != "None" and value3 != " ":
-                job.append(value3)
-            else:
-                pass
-
-            if value4.lower() != "N/A" and value4.lower() != "Not Specified" and value4.lower() != "None" and value4.lower() != " ":
-                job.append(value4)
-            else:
-                pass
-            if value5 != 0:
-                if value5 < 4:
-                    x =value5 * 12
-                    print(x)
-                    job.append(x)
-                else:
-                    x = 500
-                    print(x)
-                    job.append(x)
+            elif url_parts and url_parts2:
+               joined_string = "-".join(url_parts)
+               joined_string1 = "-".join(url_parts2)
+               URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}?course=16&experience={joined_string1}"
+               lowercase_url = URL.lower()
+               print(lowercase_url)
+            elif  url_parts3:
+                joined_string2 = "-".join(url_parts3)
+                
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/?experience={joined_string2}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
+            elif  url_parts4:
+                joined_string3 = "-".join(url_parts4)
+                
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/jobs-in-{joined_string3}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
+            elif  url_parts5:
+                joined_string4 = "-".join(url_parts5)
+                
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/jobs-for-{joined_string4}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
             
             
             
-
-            if value6.lower() != "N/A" and value6.lower != "Not Specified" and value6.lower() != "None" and value6.lower() != " ":
-                job.append(value6)
+            elif  url_parts:
+                joined_string = "-".join(url_parts)
+                
+                URL = f"https://www.freshersworld.com/jobs/jobsearch/{joined_string}"
+                lowercase_url = URL.lower()
+                print(lowercase_url)
             else:
-                pass
-
-            print(job)
-            joined_string =  '-'.join(str(element) for element in job) 
-            print(joined_string)
-           # URL="https://www.freshersworld.com/jobs/jobsearch/"+
-            # URL =f"https://www.freshersworld.com/jobs/jobsearch/"+{formatted_job_title}+"-for-"+{value3}+"?course=16&experience="+{x}
-            url2 ="https://www.freshersworld.com/jobs/jobsearch/" + formatted_job_title.lower() 
-            URL = "https://www.freshersworld.com/jobs/jobsearch/" + formatted_job_title.lower() +  "?course=16&experience=" + str(value5)
-            url1= "https://www.freshersworld.com/jobs/jobsearch/" + formatted_job_title.lower() +"-for-"+value2+ "?course=16&experience=" + str(value5)
-            
-            print(url2)
-            print(URL)
-            print(url1)
-
-             
+                print("No valid information provided to generate the URL.")
